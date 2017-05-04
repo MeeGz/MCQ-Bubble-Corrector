@@ -57,27 +57,34 @@ ans = np.zeros((4, 2))
 question_number_offset = 0
 for k in range(0, 3):
     for j in range(0, 15):
-        edges_question = cv2.Canny(questions[k][j], 60, 100, L2gradient=True)
+        edges_question = cv2.Canny(questions[k][j], 60, 70, L2gradient=True)
         im3, cntss, hirc = cv2.findContours(edges_question, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cntss_sorted_circles = sorted(cntss, key=cv2.contourArea, reverse=True)
         questions[k][j] = cv2.cvtColor(questions[k][j], cv2.COLOR_GRAY2BGR)
-        for i in range(0, 4):
+        ans = []
+        _range = 3
+        i = -1
+        while i < _range:
+            i += 1
             x, y, w, h = cv2.boundingRect(cntss_sorted_circles[i])
+            if x < 110:
+                _range += 1
+                continue
             cv2.rectangle(questions[k][j], (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.drawContours(questions[k][j], cntss_sorted_circles, i, (0, 0, 255), 2, cv2.LINE_AA)
+            # cv2.drawContours(questions[k][j], cntss_sorted_circles, i, (0, 0, 255), 2, cv2.LINE_AA)
             rect = questions[k][j]
             rect = rect[y:y + h, x:x + w]
             mean = rect.mean()
-            ans[i] = [x, mean]
+            ans.append([x, mean])
         sorted_ans = sorted(ans, key=lambda l: l[0], reverse=False)
         final_answer = []
-        for i in range(0, 4):
-            if sorted_ans[i][1] < 100:
+        for i in range(0, len(ans)):
+            if sorted_ans[i][1] < 130:
                 final_answer.append(answers[i])
         if len(final_answer) == 1:
             if final_answer[0] == model_answers[k + 1 + question_number_offset + j]:
                 total_grade += 1
-        # print("Question", (k + 1 + question_number_offset + j), ":", final_answer)
+        print("Question", (k + 1 + question_number_offset + j), ":", final_answer)
     question_number_offset += 14
 print("Total Grade:", total_grade)
 # while (cv2.waitKey(0) & 0xFF) != ord('q'):
