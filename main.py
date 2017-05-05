@@ -12,11 +12,11 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
 faults = 0
-dir_path = "/home/meegz/Projects/Image Processing/Dataset/tests/"
+dir_path = "/home/yousef/projects/mcq-corrector/dataset/test/"
 write_list = []
 toWrite = []
 wrong_detection_count = 0
-DEBUG = True
+DEBUG = False
 
 for filename in os.listdir(dir_path):
     print("------------------------------------------------")
@@ -33,12 +33,12 @@ for filename in os.listdir(dir_path):
     for line in lines:
         for x1, y1, x2, y2 in line:
             cv2.line(hoppa, (x1, y1), (x2, y2), (0, 255, 255), 1)
-    v_threshold_length = 600
-    v_threshold_angle = range(70, 110)
+    v_threshold_length = 300
+    v_threshold_angle = range(60, 120)
     v_filter = []
     h_threshold_length = 50
-    h_threshold_angle_1 = range(160, 180)
-    h_threshold_angle_2 = range(0, 20)
+    h_threshold_angle_1 = range(150, 180)
+    h_threshold_angle_2 = range(0, 30)
     h_filter = []
     for line in lines:
         for x1, y1, x2, y2 in line:
