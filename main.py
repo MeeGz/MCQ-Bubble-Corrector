@@ -9,7 +9,7 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  31: "B", 32: "B", 33: "D", 34: "C", 35: "B", 36: "C", 37: "B", 38: "C", 39: "C", 40: "A",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
-original_image = cv2.imread("/home/meegz/Projects/Image Processing/Dataset/test/S_2_hppscan19.png")
+original_image = cv2.imread("/home/meegz/Projects/Image Processing/Dataset/test/S_4_hppscan110.png")
 original_image = original_image[670: 1480, :]
 height, width = original_image.shape[:2]
 gray_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
@@ -60,7 +60,8 @@ for i in range(len(pts)):
         x2, y2 = pts[j][0], pts[j][1]
         if abs(x1 - x2) < 5 and abs(y1 - y2) < 5:
             indexes.append(j)
-indexes = sorted(indexes, reverse=True)
+# indexes = sorted(indexes, reverse=True)
+indexes = sorted(set(indexes), reverse=True)
 for i in indexes:
     pts.remove(pts[i])
 filtered_pts = []
