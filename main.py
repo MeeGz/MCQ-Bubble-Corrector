@@ -9,7 +9,7 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  31: "B", 32: "B", 33: "D", 34: "C", 35: "B", 36: "C", 37: "B", 38: "C", 39: "C", 40: "A",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
-original_image = cv2.imread("/home/meegz/Projects/Image Processing/Dataset/test/S_1_hppscan1.png")
+original_image = cv2.imread("/home/meegz/Projects/Image Processing/Dataset/test/S_2_hppscan19.png")
 original_image = original_image[670: 1480, :]
 height, width = original_image.shape[:2]
 gray_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
@@ -124,7 +124,7 @@ for k in range(0, 3):
         sorted_ans = sorted(ans, key=lambda l: l[0], reverse=False)
         final_answer = []
         for i in range(0, len(ans)):
-            if sorted_ans[i][1] < 130:
+            if sorted_ans[i][1] < 170:
                 final_answer.append(answers[i])
         if len(final_answer) == 1:
             if final_answer[0] == model_answers[k + 1 + question_number_offset + j]:
