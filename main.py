@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+import math
 
 answers = {0: "A", 1: "B", 2: "C", 3: "D"}
 model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C", 9: "A", 10: "C",
@@ -10,37 +10,91 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
 original_image = cv2.imread("/home/yousef/projects/mcq-corrector/dataset/test/S_1_hppscan1.png")
-original_image = original_image[670:, :]
+original_image = original_image[670: 1480, :]
 height, width = original_image.shape[:2]
 gray_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
-blurred = cv2.GaussianBlur(gray_image, (7, 7), 0)
+blurred = cv2.GaussianBlur(gray_image, (7, 7), 0.5)
 edge_image = cv2.Canny(blurred, 60, 100, L2gradient=True)
-im2, cnts, h = cv2.findContours(edge_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-cnts_sorted = sorted(cnts, key=cv2.contourArea, reverse=True)
-answer_block = cnts_sorted[0]
-peri = cv2.arcLength(answer_block, True)
-approx = cv2.approxPolyDP(answer_block, 0.02 * peri, True)
-assert len(approx) == 4
-new_approx = []
-for pt in approx:
-    for x, y in pt:
-        new_approx.append([x, y])
+LSD = cv2.createLineSegmentDetector(cv2.LSD_REFINE_STD)
+lines, w, prec, nfa = LSD.detect(blurred)
+v_threshold_length = 730
+v_threshold_angle = range(70, 110)
+v_filter = []
+h_threshold_length = 200
+h_threshold_angle_1 = range(160, 180)
+h_threshold_angle_2 = range(0, 20)
+h_filter = []
+for line in lines:
+    for x1, y1, x2, y2 in line:
+        if y1 < y2:
+            x1, x2 = x2, x1
+            y1, y2 = y2, y1
+        theta = cv2.fastAtan2((y2 - y1), (x2 - x1))
+        if theta > 180:
+            theta -= 180
+        length = math.sqrt(math.pow((x2 - x1), 2) + math.pow((y2 - y1), 2))
+        if int(theta) in v_threshold_angle and length >= v_threshold_length and (int(x1) in range(80, 200) or int(x1) in range(1040, 1180)):
+            # cv2.line(original_image, (x1, y1), (x2, y2), (255, 0, 0), 1)
+            v_filter.append([x1, y1, x2, y2])
+        if (int(theta) in h_threshold_angle_1 or int(theta) in h_threshold_angle_2) and length >= h_threshold_length:
+            # cv2.line(original_image, (x1, y1), (x2, y2), (0, 0, 255), 1)
+            h_filter.append([x1, y1, x2, y2])
+print(len(v_filter))
+print(v_filter)
+print(len(h_filter))
+print(h_filter)
+pts = []
+for v_line in v_filter:
+    vx1, vy1, vx2, vy2 = v_line[0], v_line[1], v_line[2], v_line[3]
+    for h_line in h_filter:
+        hx1, hy1, hx2, hy2 = h_line[0], h_line[1], h_line[2], h_line[3]
+        if abs(vx1 - hx1) < 10:
+            pts.append([vx1, hy1, 0])
+        elif abs(vx1 - hx2) < 10:
+            pts.append([vx1, hy2, 0])
+        elif abs(vx2 - hx2) < 10:
+            pts.append([vx2, hy2, 0])
+        elif abs(vx2 - hx1) < 10:
+            pts.append([vx2, hy1, 0])
+print(len(pts))
+indexes = []
+for i in range(len(pts)):
+    x1, y1 = pts[i][0], pts[i][1]
+    pts[i][2] = 1
+    for j in range(len(pts)):
+        if pts[j] == pts[i] or pts[j][2] == 0:
+            continue
+        x2, y2 = pts[j][0], pts[j][1]
+        if abs(x1 - x2) < 5 and abs(y1 - y2) < 5:
+            indexes.append(j)
+indexes = sorted(indexes, reverse=True)
+for i in indexes:
+    pts.remove(pts[i])
+# for pt in pts:
+#     cv2.circle(original_image, (pt[0], pt[1]), 10, (0, 255, 0), 1)
+# hi = cv2.resize(original_image, (500, 500), interpolation=cv2.INTER_AREA)
+# cv2.imshow('fsad', hi)
+# cv2.waitKey(0)
+filtered_pts = []
+for pt in pts:
+    filtered_pts.append([pt[0], pt[1]])
+assert len(filtered_pts) == 4
 dst = np.array([[0, 0], [height, 0], [height, width], [0, width]], dtype="float32")
-pts = np.array(new_approx, dtype="float32")
+filtered_pts = np.array(filtered_pts, dtype="float32")
 rect = np.zeros((4, 2), dtype="float32")
-s = pts.sum(axis=1)
-rect[0] = pts[np.argmin(s)]
-rect[2] = pts[np.argmax(s)]
-diff = np.diff(pts, axis=1)
-rect[1] = pts[np.argmin(diff)]
-rect[3] = pts[np.argmax(diff)]
+s = filtered_pts.sum(axis=1)
+rect[0] = filtered_pts[np.argmin(s)]
+rect[2] = filtered_pts[np.argmax(s)]
+diff = np.diff(filtered_pts, axis=1)
+rect[1] = filtered_pts[np.argmin(diff)]
+rect[3] = filtered_pts[np.argmax(diff)]
 HomographyToInv = cv2.getPerspectiveTransform(rect, dst)
 new_image = cv2.warpPerspective(original_image, HomographyToInv, (height, width))
 new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2GRAY)
+cv2.imwrite('magdy.png', new_image)
 col1 = new_image[:, 0:331]
 col2 = new_image[:, 350:691]
 col3 = new_image[:, 710:]
-new_image = cv2.resize(new_image, (500, 500), interpolation=cv2.INTER_AREA)
 questions = []
 col1l = []
 col2l = []
@@ -61,6 +115,8 @@ for k in range(0, 3):
         im3, cntss, hirc = cv2.findContours(edges_question, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cntss_sorted_circles = sorted(cntss, key=cv2.contourArea, reverse=True)
         questions[k][j] = cv2.cvtColor(questions[k][j], cv2.COLOR_GRAY2BGR)
+        cv2.imshow('fsad', questions[k][j])
+        cv2.waitKey(0)
         ans = []
         _range = 3
         i = -1
