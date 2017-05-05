@@ -12,7 +12,7 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
 faults = 0
-dir_path = "/home/yousef/projects/mcq-corrector/dataset/train/"
+dir_path = "/home/meegz/Projects/Image Processing/Dataset/tests/"
 write_list = []
 toWrite = []
 wrong_detection_count = 0
@@ -78,27 +78,25 @@ for filename in os.listdir(dir_path):
             x2, y2 = pts[j][0], pts[j][1]
             if abs(x1 - x2) < 20 and abs(y1 - y2) < 20:
                 indexes.append(j)
-    # indexes = sorted(indexes, reverse=True)
     indexes = sorted(set(indexes), reverse=True)
     for i in indexes:
         pts.remove(pts[i])
     filtered_pts = []
+    filtered = []
     for pt in pts:
-        if pt[0] < 250 or pt[0] > 1000:
+        if pt[0] < 300:
+            filtered.append(pt)
+    size = len(filtered)
+    sorted_filtered = sorted(filtered, key=lambda l: l[1], reverse=False)
+    while size > 2:
+        sorted_filtered.remove(sorted_filtered[0])
+        size = len(sorted_filtered)
+    for pt in sorted_filtered:
+        filtered_pts.append([pt[0], pt[1]])
+    for pt in pts:
+        if pt[0] > 1000:
             filtered_pts.append([pt[0], pt[1]])
     filtered_pts = sorted(filtered_pts, key=lambda l: l[1], reverse=False)
-    size = len(filtered_pts)
-    count = 0
-    while size > 4:
-        for pt1 in filtered_pts:
-            for pt2 in filtered_pts:
-                if pt1 == pt2:
-                    continue
-                if abs(pt1[0] - pt2[0]) < 100:
-                    count += 1
-            if count > 1:
-                filtered_pts = filtered_pts[1:]
-        size = len(filtered_pts)
     for pt in filtered_pts:
         cv2.circle(hoppa, (pt[0], pt[1]), 10, (0, 255, 0), 2)
     if DEBUG:
