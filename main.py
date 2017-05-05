@@ -9,7 +9,7 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  31: "B", 32: "B", 33: "D", 34: "C", 35: "B", 36: "C", 37: "B", 38: "C", 39: "C", 40: "A",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
-original_image = cv2.imread("/home/yousef/projects/mcq-corrector/dataset/test/S_5_hppscan128.png")
+original_image = cv2.imread("/home/yousef/projects/mcq-corrector/dataset/test/S_1_hppscan1.png")
 original_image = original_image[670: 1480, :]
 hoppa = original_image.copy()
 height, width = original_image.shape[:2]
@@ -56,11 +56,6 @@ for v_line in v_filter:
             pts.append([vx2, hy2, 0])
         elif abs(vx2 - hx1) < 10:
             pts.append([vx2, hy1, 0])
-for i in pts:
-    cv2.circle(hoppa, (i[0], i[1]), 10, (0, 255, 0), 2)
-hoppa = cv2.resize(hoppa, (500, 500), interpolation=cv2.INTER_AREA)
-cv2.imshow('sds', hoppa)
-cv2.waitKey(0)
 indexes = []
 for i in range(len(pts)):
     x1, y1 = pts[i][0], pts[i][1]
@@ -69,7 +64,7 @@ for i in range(len(pts)):
         if pts[j] == pts[i] or pts[j][2] == 0:
             continue
         x2, y2 = pts[j][0], pts[j][1]
-        if abs(x1 - x2) < 5 and abs(y1 - y2) < 5:
+        if abs(x1 - x2) < 10 and abs(y1 - y2) < 10:
             indexes.append(j)
 # indexes = sorted(indexes, reverse=True)
 indexes = sorted(set(indexes), reverse=True)
@@ -77,7 +72,14 @@ for i in indexes:
     pts.remove(pts[i])
 filtered_pts = []
 for pt in pts:
-    filtered_pts.append([pt[0], pt[1]])
+    if pt[0] < 250 or pt[0] > 1000:
+        filtered_pts.append([pt[0], pt[1]])
+        cv2.circle(hoppa, (pt[0], pt[1]), 10, (0, 255, 0), 2)
+
+hoppa = cv2.resize(hoppa, (500, 500), interpolation=cv2.INTER_AREA)
+cv2.imshow('sds', hoppa)
+cv2.waitKey(0)
+print(len(filtered_pts), filtered_pts)
 assert len(filtered_pts) == 4
 dst = np.array([[0, 0], [height, 0], [height, width], [0, width]], dtype="float32")
 filtered_pts = np.array(filtered_pts, dtype="float32")
