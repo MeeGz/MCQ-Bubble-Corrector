@@ -16,12 +16,13 @@ dir_path = "/home/yousef/projects/mcq-corrector/dataset/train/"
 write_list = []
 toWrite = []
 wrong_detection_count = 0
+DEBUG = True
 
 for filename in os.listdir(dir_path):
     print("------------------------------------------------")
     print("File:", filename)
     original_image = cv2.imread(dir_path + "/" + filename)
-    original_image = original_image[650: 1480, :]
+    original_image = original_image[650: 1600, :]
     hoppa = original_image.copy()
     height, width = original_image.shape[:2]
     gray_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
@@ -35,7 +36,7 @@ for filename in os.listdir(dir_path):
     v_threshold_length = 600
     v_threshold_angle = range(70, 110)
     v_filter = []
-    h_threshold_length = 200
+    h_threshold_length = 50
     h_threshold_angle_1 = range(160, 180)
     h_threshold_angle_2 = range(0, 20)
     h_filter = []
@@ -87,14 +88,23 @@ for filename in os.listdir(dir_path):
             filtered_pts.append([pt[0], pt[1]])
     filtered_pts = sorted(filtered_pts, key=lambda l: l[1], reverse=False)
     size = len(filtered_pts)
+    count = 0
     while size > 4:
-        filtered_pts = filtered_pts[1:]
+        for pt1 in filtered_pts:
+            for pt2 in filtered_pts:
+                if pt1 == pt2:
+                    continue
+                if abs(pt1[0] - pt2[0]) < 100:
+                    count += 1
+            if count > 1:
+                filtered_pts = filtered_pts[1:]
         size = len(filtered_pts)
     for pt in filtered_pts:
         cv2.circle(hoppa, (pt[0], pt[1]), 10, (0, 255, 0), 2)
-    # hoppa = cv2.resize(hoppa, (500, 500), interpolation=cv2.INTER_AREA)
-    # cv2.imshow('sds', hoppa)
-    # cv2.waitKey(0)
+    if DEBUG:
+        hoppa = cv2.resize(hoppa, (500, 500), interpolation=cv2.INTER_AREA)
+        cv2.imshow('sds', hoppa)
+        cv2.waitKey(0)
     # print(len(filtered_pts), filtered_pts)
     assert len(filtered_pts) == 4
 
@@ -134,9 +144,10 @@ for filename in os.listdir(dir_path):
             im3, cntss, hirc = cv2.findContours(edges_question, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             cntss_sorted_circles = sorted(cntss, key=cv2.contourArea, reverse=True)
             questions[k][j] = cv2.cvtColor(questions[k][j], cv2.COLOR_GRAY2BGR)
-            # cv2.drawContours(questions[k][j], cntss_sorted_circles, -1, (0, 0, 255), 1)
-            # cv2.imshow('fsad', questions[k][j])
-            # cv2.waitKey(0)
+            if DEBUG:
+                cv2.drawContours(questions[k][j], cntss_sorted_circles, -1, (0, 0, 255), 1)
+                cv2.imshow('fsad', questions[k][j])
+                cv2.waitKey(0)
             # cv2.imwrite('m.png', questions[k][j])
             ans = []
             _range = 3
