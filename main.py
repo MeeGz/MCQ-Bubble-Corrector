@@ -9,7 +9,7 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  31: "B", 32: "B", 33: "D", 34: "C", 35: "B", 36: "C", 37: "B", 38: "C", 39: "C", 40: "A",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
-original_image = cv2.imread("/home/yousef/projects/mcq-corrector/dataset/test/S_1_hppscan1.png")
+original_image = cv2.imread("/home/meegz/Projects/Image Processing/Dataset/test/S_1_hppscan1.png")
 original_image = original_image[670: 1480, :]
 height, width = original_image.shape[:2]
 gray_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
@@ -34,15 +34,9 @@ for line in lines:
             theta -= 180
         length = math.sqrt(math.pow((x2 - x1), 2) + math.pow((y2 - y1), 2))
         if int(theta) in v_threshold_angle and length >= v_threshold_length and (int(x1) in range(80, 200) or int(x1) in range(1040, 1180)):
-            # cv2.line(original_image, (x1, y1), (x2, y2), (255, 0, 0), 1)
             v_filter.append([x1, y1, x2, y2])
         if (int(theta) in h_threshold_angle_1 or int(theta) in h_threshold_angle_2) and length >= h_threshold_length:
-            # cv2.line(original_image, (x1, y1), (x2, y2), (0, 0, 255), 1)
             h_filter.append([x1, y1, x2, y2])
-print(len(v_filter))
-print(v_filter)
-print(len(h_filter))
-print(h_filter)
 pts = []
 for v_line in v_filter:
     vx1, vy1, vx2, vy2 = v_line[0], v_line[1], v_line[2], v_line[3]
@@ -56,7 +50,6 @@ for v_line in v_filter:
             pts.append([vx2, hy2, 0])
         elif abs(vx2 - hx1) < 10:
             pts.append([vx2, hy1, 0])
-print(len(pts))
 indexes = []
 for i in range(len(pts)):
     x1, y1 = pts[i][0], pts[i][1]
@@ -70,11 +63,6 @@ for i in range(len(pts)):
 indexes = sorted(indexes, reverse=True)
 for i in indexes:
     pts.remove(pts[i])
-# for pt in pts:
-#     cv2.circle(original_image, (pt[0], pt[1]), 10, (0, 255, 0), 1)
-# hi = cv2.resize(original_image, (500, 500), interpolation=cv2.INTER_AREA)
-# cv2.imshow('fsad', hi)
-# cv2.waitKey(0)
 filtered_pts = []
 for pt in pts:
     filtered_pts.append([pt[0], pt[1]])
@@ -91,7 +79,8 @@ rect[3] = filtered_pts[np.argmax(diff)]
 HomographyToInv = cv2.getPerspectiveTransform(rect, dst)
 new_image = cv2.warpPerspective(original_image, HomographyToInv, (height, width))
 new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2GRAY)
-cv2.imwrite('magdy.png', new_image)
+# Resized 3shan kasselt a5od dimensions gdeda :v *Magdy*
+new_image = cv2.resize(new_image, (1083, 1240), interpolation=cv2.INTER_AREA)
 col1 = new_image[:, 0:331]
 col2 = new_image[:, 350:691]
 col3 = new_image[:, 710:]
@@ -99,11 +88,11 @@ questions = []
 col1l = []
 col2l = []
 col3l = []
-offset = 69
+offset = 68
 for i in range(0, 15):
-    col1l.append(col1[110 + i*offset: 110 + (i+1)*offset])
-    col2l.append(col2[110 + i*offset: 110 + (i+1)*offset])
-    col3l.append(col3[110 + i*offset: 110 + (i+1)*offset])
+    col1l.append(col1[115 + i*offset: 115 + (i+1)*offset])
+    col2l.append(col2[115 + i*offset: 115 + (i+1)*offset])
+    col3l.append(col3[115 + i*offset: 115 + (i+1)*offset])
 questions.append(col1l)
 questions.append(col2l)
 questions.append(col3l)
