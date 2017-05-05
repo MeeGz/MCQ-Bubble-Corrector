@@ -9,15 +9,19 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  31: "B", 32: "B", 33: "D", 34: "C", 35: "B", 36: "C", 37: "B", 38: "C", 39: "C", 40: "A",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
-original_image = cv2.imread("/home/meegz/Projects/Image Processing/Dataset/test/S_4_hppscan110.png")
+original_image = cv2.imread("/home/yousef/projects/mcq-corrector/dataset/test/S_5_hppscan128.png")
 original_image = original_image[670: 1480, :]
+hoppa = original_image.copy()
 height, width = original_image.shape[:2]
 gray_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
 blurred = cv2.GaussianBlur(gray_image, (7, 7), 0.5)
-edge_image = cv2.Canny(blurred, 60, 100, L2gradient=True)
+# edge_image = cv2.Canny(blurred, 60, 100, L2gradient=True)
 LSD = cv2.createLineSegmentDetector(cv2.LSD_REFINE_STD)
 lines, w, prec, nfa = LSD.detect(blurred)
-v_threshold_length = 730
+for line in lines:
+    for x1, y1, x2, y2 in line:
+        cv2.line(hoppa, (x1, y1), (x2, y2), (0, 255, 255), 1)
+v_threshold_length = 600
 v_threshold_angle = range(70, 110)
 v_filter = []
 h_threshold_length = 200
@@ -33,9 +37,11 @@ for line in lines:
         if theta > 180:
             theta -= 180
         length = math.sqrt(math.pow((x2 - x1), 2) + math.pow((y2 - y1), 2))
-        if int(theta) in v_threshold_angle and length >= v_threshold_length and (int(x1) in range(80, 200) or int(x1) in range(1040, 1180)):
+        if int(theta) in v_threshold_angle and length >= v_threshold_length:
+            cv2.line(hoppa, (x1, y1), (x2, y2), (0, 0, 255), 1)
             v_filter.append([x1, y1, x2, y2])
         if (int(theta) in h_threshold_angle_1 or int(theta) in h_threshold_angle_2) and length >= h_threshold_length:
+            cv2.line(hoppa, (x1, y1), (x2, y2), (255, 0, 0), 1)
             h_filter.append([x1, y1, x2, y2])
 pts = []
 for v_line in v_filter:
@@ -50,6 +56,11 @@ for v_line in v_filter:
             pts.append([vx2, hy2, 0])
         elif abs(vx2 - hx1) < 10:
             pts.append([vx2, hy1, 0])
+for i in pts:
+    cv2.circle(hoppa, (i[0], i[1]), 10, (0, 255, 0), 2)
+hoppa = cv2.resize(hoppa, (500, 500), interpolation=cv2.INTER_AREA)
+cv2.imshow('sds', hoppa)
+cv2.waitKey(0)
 indexes = []
 for i in range(len(pts)):
     x1, y1 = pts[i][0], pts[i][1]
@@ -80,7 +91,6 @@ rect[3] = filtered_pts[np.argmax(diff)]
 HomographyToInv = cv2.getPerspectiveTransform(rect, dst)
 new_image = cv2.warpPerspective(original_image, HomographyToInv, (height, width))
 new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2GRAY)
-# Resized 3shan kasselt a5od dimensions gdeda :v *Magdy*
 new_image = cv2.resize(new_image, (1083, 1240), interpolation=cv2.INTER_AREA)
 col1 = new_image[:, 0:331]
 col2 = new_image[:, 350:691]
