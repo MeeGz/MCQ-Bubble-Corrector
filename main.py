@@ -12,16 +12,16 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
 faults = 0
-dir_path = "/home/yousef/projects/mcq-corrector/dataset/test/"
+dir_path = "/home/yousef/projects/mcq-corrector/dataset/train/"
 write_list = []
 toWrite = []
 wrong_detection_count = 0
 
 for filename in os.listdir(dir_path):
     print("------------------------------------------------")
-    print(filename)
+    print("File:", filename)
     original_image = cv2.imread(dir_path + "/" + filename)
-    original_image = original_image[670: 1480, :]
+    original_image = original_image[650: 1480, :]
     hoppa = original_image.copy()
     height, width = original_image.shape[:2]
     gray_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
@@ -85,15 +85,17 @@ for filename in os.listdir(dir_path):
     for pt in pts:
         if pt[0] < 250 or pt[0] > 1000:
             filtered_pts.append([pt[0], pt[1]])
-            cv2.circle(hoppa, (pt[0], pt[1]), 10, (0, 255, 0), 2)
-
-    hoppa = cv2.resize(hoppa, (500, 500), interpolation=cv2.INTER_AREA)
+    filtered_pts = sorted(filtered_pts, key=lambda l: l[1], reverse=False)
+    size = len(filtered_pts)
+    while size > 4:
+        filtered_pts = filtered_pts[1:]
+        size = len(filtered_pts)
+    for pt in filtered_pts:
+        cv2.circle(hoppa, (pt[0], pt[1]), 10, (0, 255, 0), 2)
+    # hoppa = cv2.resize(hoppa, (500, 500), interpolation=cv2.INTER_AREA)
     # cv2.imshow('sds', hoppa)
     # cv2.waitKey(0)
     # print(len(filtered_pts), filtered_pts)
-    
-    if len(filtered_pts) != 4:
-        print(filename)
     assert len(filtered_pts) == 4
 
     dst = np.array([[0, 0], [height, 0], [height, width], [0, width]], dtype="float32")
@@ -132,19 +134,20 @@ for filename in os.listdir(dir_path):
             im3, cntss, hirc = cv2.findContours(edges_question, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             cntss_sorted_circles = sorted(cntss, key=cv2.contourArea, reverse=True)
             questions[k][j] = cv2.cvtColor(questions[k][j], cv2.COLOR_GRAY2BGR)
+            # cv2.drawContours(questions[k][j], cntss_sorted_circles, -1, (0, 0, 255), 1)
             # cv2.imshow('fsad', questions[k][j])
             # cv2.waitKey(0)
+            # cv2.imwrite('m.png', questions[k][j])
             ans = []
             _range = 3
             i = -1
             while i < _range:
                 i += 1
                 x, y, w, h = cv2.boundingRect(cntss_sorted_circles[i])
-                if x < 110:
+                if x < 90:
                     _range += 1
                     continue
                 cv2.rectangle(questions[k][j], (x, y), (x + w, y + h), (0, 255, 0), 2)
-                # cv2.drawContours(questions[k][j], cntss_sorted_circles, i, (0, 0, 255), 2, cv2.LINE_AA)
                 rect = questions[k][j]
                 rect = rect[y:y + h, x:x + w]
                 mean = rect.mean()
@@ -159,9 +162,9 @@ for filename in os.listdir(dir_path):
                     total_grade += 1
                 else:
                     faults += 1
-                    print(k + 1 + question_number_offset + j)
+                    # print(k + 1 + question_number_offset + j)
             # print("Question", (k + 1 + question_number_offset + j), ":", final_answer)
-            print(final_answer, model_answers[(k * 15) + j + 1])
+            # print(final_answer, model_answers[(k * 15) + j + 1])
         question_number_offset += 14
     print("File:", filename)
     print("Total Grade:", total_grade, ", No of Faults:", faults)
