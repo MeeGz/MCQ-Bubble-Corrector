@@ -12,12 +12,14 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
 faults = 0
-dir_path = "E:/_Engineering - ASU/4th CSE/Image Processing Project datasets/test+"
+dir_path = "/home/yousef/projects/mcq-corrector/dataset/test/"
 write_list = []
 toWrite = []
 wrong_detection_count = 0
 
 for filename in os.listdir(dir_path):
+    print("------------------------------------------------")
+    print(filename)
     original_image = cv2.imread(dir_path + "/" + filename)
     original_image = original_image[670: 1480, :]
     hoppa = original_image.copy()
@@ -73,7 +75,7 @@ for filename in os.listdir(dir_path):
             if pts[j] == pts[i] or pts[j][2] == 0:
                 continue
             x2, y2 = pts[j][0], pts[j][1]
-            if abs(x1 - x2) < 10 and abs(y1 - y2) < 10:
+            if abs(x1 - x2) < 20 and abs(y1 - y2) < 20:
                 indexes.append(j)
     # indexes = sorted(indexes, reverse=True)
     indexes = sorted(set(indexes), reverse=True)
@@ -161,6 +163,7 @@ for filename in os.listdir(dir_path):
             # print("Question", (k + 1 + question_number_offset + j), ":", final_answer)
             print(final_answer, model_answers[(k * 15) + j + 1])
         question_number_offset += 14
+    print("File:", filename)
     print("Total Grade:", total_grade, ", No of Faults:", faults)
 
     write_list.append(filename)
