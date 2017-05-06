@@ -12,11 +12,11 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
 faults = 0
-dir_path = "/home/yousef/projects/mcq-corrector/dataset/train"
+dir_path = "/home/meegz/Projects/Image Processing/Dataset/test"
 write_list = []
 toWrite = []
 wrong_detection_count = 0
-DEBUG = True
+DEBUG = False
 
 for filename in os.listdir(dir_path):
     print("------------------------------------------------")
@@ -154,23 +154,26 @@ for filename in os.listdir(dir_path):
                     _range += 1
                     continue
                 tmp_selected_cont.append([x, y, h, w])
-                tmp_selected_cont = sorted(tmp_selected_cont, key=lambda l: l[0], reverse=False)
+            tmp_selected_cont = sorted(tmp_selected_cont, key=lambda l: l[0], reverse=False)
             ans = []
             prevX = 0
-            prevY = 13  # default y value is about 13
+            prevY = 0  # default y value is about 13
             prevW = 0
             prevH = 0
             for x, y, h, w in tmp_selected_cont:
-                if abs(prevY - y) > 5 and prevY != 13:
+                if (abs(prevY - y) > 5 or h*w < 600) and prevY != 0:
                     y = prevY
                     x = prevX + 45  # difference between Xs is about 45
                     w = prevW
                     h = prevH
-                elif abs(prevY - y) > 5 and prevY == 13:
-                    x = tmp_selected_cont[1][0] - 45
-                    y = tmp_selected_cont[1][1]
-                    h = tmp_selected_cont[1][2]
-                    w = tmp_selected_cont[1][3]
+                elif abs(prevY - y) > 5 and prevY == 0 and prevX == 0:
+                    i = 1
+                    while h*w < 600 and i < 4:
+                        x = tmp_selected_cont[i][0] - i * 45  # difference between Xs is about 45
+                        y = tmp_selected_cont[i][1]
+                        w = 25
+                        h = 37
+                        i += 1
                 cv2.rectangle(questions[k][j], (x, y), (x + w, y + h), (0, 255, 0), 2)
                 rect = questions[k][j]
                 rect = rect[y:y + h, x:x + w]
@@ -189,10 +192,10 @@ for filename in os.listdir(dir_path):
             sorted_ans = sorted(ans, key=lambda l: l[0], reverse=False)
             while len(sorted_ans) > 4:
                 sorted_ans = sorted_ans[1:]
-                print(len(sorted_ans))
+                # print(len(sorted_ans))
             final_answer = []
             for i in range(0, len(ans)):
-                if sorted_ans[i][1] < 170:
+                if sorted_ans[i][1] < 190:
                     final_answer.append(answers[i])
             if len(final_answer) == 1:
                 if final_answer[0] == model_answers[k + 1 + question_number_offset + j]:
@@ -200,21 +203,27 @@ for filename in os.listdir(dir_path):
                 else:
                     faults += 1
             elif len(ans) > 1:
-                avg = 0
-                for anss in ans:
-                    avg += anss[1]
-                avg /= 4
-                x = 0
-                for i in range(0, 4):
-                    if ans[i][1] < avg/2:
-                        if answers[i] == model_answers[k + 1 + question_number_offset + j]:
-                            total_grade += 1
-                        x += 1
-                if x == 0:
-                    print("a7eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeh in:", (k + 1 + question_number_offset + j))
-            print("Question", (k + 1 + question_number_offset + j), ":", final_answer)
+                # avg = 0
+                # for anss in ans:
+                #     avg += anss[1]
+                # avg /= 4
+                # x = 0
+                # for i in range(0, 4):
+                #     if ans[i][1] < avg/2:
+                #         if answers[i] == model_answers[k + 1 + question_number_offset + j]:
+                #             total_grade += 1
+                #         x += 1
+                if abs(ans[0][1] - ans[1][1]) > 100:
+                    if ans[0][1] < ans[1][1]:
+                        ans.remove(ans[1])
+                    else:
+                        ans.remove(ans[0])
+
+            #     if x == 0:
+            #         print("a7eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeh in:", (k + 1 + question_number_offset + j))
+            # print("Question", (k + 1 + question_number_offset + j), ":", final_answer)
         question_number_offset += 14
-    print("File:", filename)
+    # print("File:", filename)
     print("Total Grade:", total_grade, ", No of Faults:", faults)
 
     write_list.append(filename)
