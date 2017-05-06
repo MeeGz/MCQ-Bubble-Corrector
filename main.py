@@ -12,7 +12,7 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
 faults = 0
-dir_path = "/home/meegz/Projects/Image Processing/Dataset/test"
+dir_path = "E:/_Engineering - ASU/4th CSE/Image Processing/Image Processing Project datasets/test"
 write_list = []
 toWrite = []
 wrong_detection_count = 0
@@ -203,6 +203,7 @@ for filename in os.listdir(dir_path):
                 else:
                     faults += 1
             elif len(ans) > 1:
+                faults += 1
                 # avg = 0
                 # for anss in ans:
                 #     avg += anss[1]
