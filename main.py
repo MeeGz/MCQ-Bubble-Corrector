@@ -12,17 +12,17 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
 faults = 0
-dir_path = "E:/_Engineering - ASU/4th CSE/Image Processing/Image Processing Project datasets/test"
+dir_path = "E:/_Engineering - ASU/4th CSE/Image Processing/Image Processing Project datasets/faults"
 write_list = []
 toWrite = []
 wrong_detection_count = 0
-DEBUG = False
+DEBUG = True
 
 for filename in os.listdir(dir_path):
     print("------------------------------------------------")
     print("File:", filename)
     original_image = cv2.imread(dir_path + "/" + filename)
-    original_image = original_image[650: 1600, :]
+    original_image = original_image[650: 1580, :]
     hoppa = original_image.copy()
     height, width = original_image.shape[:2]
     gray_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
@@ -161,7 +161,7 @@ for filename in os.listdir(dir_path):
             prevW = 0
             prevH = 0
             for x, y, h, w in tmp_selected_cont:
-                if (abs(prevY - y) > 5 or h*w < 600) and prevY != 0:
+                if (abs(prevY - y) > 5 or h*w < 600 or h*w > 1500) and prevY != 0:
                     y = prevY
                     x = prevX + 45  # difference between Xs is about 45
                     w = prevW
@@ -194,16 +194,18 @@ for filename in os.listdir(dir_path):
                 sorted_ans = sorted_ans[1:]
                 # print(len(sorted_ans))
             final_answer = []
+            tmp_ans = []
             for i in range(0, len(ans)):
                 if sorted_ans[i][1] < 190:
                     final_answer.append(answers[i])
+                    tmp_ans.append(sorted_ans[i])
             if len(final_answer) == 1:
                 if final_answer[0] == model_answers[k + 1 + question_number_offset + j]:
                     total_grade += 1
                 else:
                     faults += 1
-            elif len(ans) > 1:
-                faults += 1
+            elif len(final_answer) > 1:
+
                 # avg = 0
                 # for anss in ans:
                 #     avg += anss[1]
@@ -214,15 +216,22 @@ for filename in os.listdir(dir_path):
                 #         if answers[i] == model_answers[k + 1 + question_number_offset + j]:
                 #             total_grade += 1
                 #         x += 1
-                if abs(ans[0][1] - ans[1][1]) > 100:
-                    if ans[0][1] < ans[1][1]:
-                        ans.remove(ans[1])
+                if abs(tmp_ans[0][1] - tmp_ans[1][1]) > 20:
+                    if tmp_ans[0][1] > tmp_ans[1][1]:
+                        final_answer.remove(final_answer[0])
                     else:
-                        ans.remove(ans[0])
-
+                        final_answer.remove(final_answer[1])
+                    if final_answer[0] == model_answers[k + 1 + question_number_offset + j]:
+                        total_grade += 1
+                    else:
+                        faults += 1
+                else:
+                    faults += 1
             #     if x == 0:
             #         print("a7eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeh in:", (k + 1 + question_number_offset + j))
-            # print("Question", (k + 1 + question_number_offset + j), ":", final_answer)
+
+
+            print("Question", (k + 1 + question_number_offset + j), ":", final_answer)
         question_number_offset += 14
     # print("File:", filename)
     print("Total Grade:", total_grade, ", No of Faults:", faults)
