@@ -12,7 +12,7 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
 faults = 0
-dir_path = "/home/meegz/Projects/Image Processing/Dataset/test"
+dir_path = "/home/yousef/projects/mcq-corrector/dataset/test"
 write_list = []
 toWrite = []
 wrong_detection_count = 0
@@ -27,7 +27,6 @@ for filename in os.listdir(dir_path):
     height, width = original_image.shape[:2]
     gray_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray_image, (7, 7), 0.5)
-    # edge_image = cv2.Canny(blurred, 60, 100, L2gradient=True)
     LSD = cv2.createLineSegmentDetector(cv2.LSD_REFINE_STD)
     lines, w, prec, nfa = LSD.detect(blurred)
     for line in lines:
@@ -103,7 +102,6 @@ for filename in os.listdir(dir_path):
         hoppa = cv2.resize(hoppa, (500, 500), interpolation=cv2.INTER_AREA)
         cv2.imshow('sds', hoppa)
         cv2.waitKey(0)
-    # print(len(filtered_pts), filtered_pts)
     assert len(filtered_pts) == 4
 
     dst = np.array([[0, 0], [height, 0], [height, width], [0, width]], dtype="float32")
@@ -142,47 +140,32 @@ for filename in os.listdir(dir_path):
             im3, cntss, hirc = cv2.findContours(edges_question, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             cntss_sorted_circles = sorted(cntss, key=cv2.contourArea, reverse=True)
             questions[k][j] = cv2.cvtColor(questions[k][j], cv2.COLOR_GRAY2BGR)
-            if DEBUG:
-                cv2.drawContours(questions[k][j], cntss_sorted_circles, -1, (0, 0, 255), 1)
-                # cv2.imshow('fsad', questions[k][j])
-                # cv2.waitKey(0)
-
-            # cv2.imwrite('m.png', questions[0][11])
             tmp_selected_cont = []
             _range = 3
             i = -1
             while i < _range:
                 i += 1
                 x, y, w, h = cv2.boundingRect(cntss_sorted_circles[i])
-                if (x < 100):
+                for X in tmp_selected_cont:
+                    if abs(x - X[0]) <= 10:
+                        x = 0
+                        break
+                if x < 100:
                     _range += 1
                     continue
                 tmp_selected_cont.append([x, y, h, w])
-                tmp_selected_cont = sorted(tmp_selected_cont, key=lambda l: l[0], reverse=False)
+            tmp_selected_cont = sorted(tmp_selected_cont, key=lambda l: l[0], reverse=False)
             ans = []
-            # _range = 3
-            # i = -1
             prevX = 0
-            prevY = 13  # default y value is about 13
+            prevY = 0  # default y value is about 13
             prevW = 0
             prevH = 0
-            # while i < _range:
             for x, y, h, w in tmp_selected_cont:
-                # i += 1
-                # x, y, w, h = cv2.boundingRect(cntss_sorted_circles[i])
-                # if (x < 100):
-                #     _range += 1
-                #     continue
-                if abs(prevY - y) > 5 and prevY != 13:
+                if abs(prevY - y) > 5 and prevY != 0 or h*w < 600:
                     y = prevY
                     x = prevX + 45  # difference between Xs is about 45
                     w = prevW
                     h = prevH
-                elif abs(prevY - y) > 5 and prevY == 13:
-                    x = tmp_selected_cont[1][0] - 45
-                    y = tmp_selected_cont[1][1]
-                    h = tmp_selected_cont[1][2]
-                    w = tmp_selected_cont[1][3]
                 cv2.rectangle(questions[k][j], (x, y), (x + w, y + h), (0, 255, 0), 2)
                 rect = questions[k][j]
                 rect = rect[y:y + h, x:x + w]
@@ -191,24 +174,26 @@ for filename in os.listdir(dir_path):
                 prevY = y
                 prevW = w
                 prevH = h
-                if h*w < 800:
-                    mean = 300
+                # if h*w < 800:
+                #     mean = 300
                 ans.append([x, mean])
-            # cv2.waitKey(0)
+            if DEBUG:
+                cv2.drawContours(questions[k][j], cntss_sorted_circles, -1, (0, 0, 255), 1)
+                cv2.imshow('fsad', questions[k][j])
+                cv2.waitKey(0)
             sorted_ans = sorted(ans, key=lambda l: l[0], reverse=False)
             while len(sorted_ans) > 4:
                 sorted_ans = sorted_ans[1:]
                 print(len(sorted_ans))
             final_answer = []
             for i in range(0, len(ans)):
-                if sorted_ans[i][1] < 180:
+                if sorted_ans[i][1] < 170:
                     final_answer.append(answers[i])
             if len(final_answer) == 1:
                 if final_answer[0] == model_answers[k + 1 + question_number_offset + j]:
                     total_grade += 1
                 else:
                     faults += 1
-                    # print(k + 1 + question_number_offset + j)
             elif len(ans) > 1:
                 avg = 0
                 for anss in ans:
@@ -220,10 +205,9 @@ for filename in os.listdir(dir_path):
                         if answers[i] == model_answers[k + 1 + question_number_offset + j]:
                             total_grade += 1
                         x += 1
-                    if (x > 1):
-                        print("a7eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeh in:", (k + 1 + question_number_offset + j))
+                if x == 0:
+                    print("a7eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeh in:", (k + 1 + question_number_offset + j))
             print("Question", (k + 1 + question_number_offset + j), ":", final_answer)
-            # print(final_answer, model_answers[(k * 15) + j + 1])
         question_number_offset += 14
     print("File:", filename)
     print("Total Grade:", total_grade, ", No of Faults:", faults)
