@@ -12,11 +12,11 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
 faults = 0
-dir_path = "/home/meegz/Projects/Image Processing/Dataset/tasky/"
+dir_path = "/home/meegz/Projects/Image Processing/Dataset/tests/"
 write_list = []
 toWrite = []
 wrong_detection_count = 0
-DEBUG = False
+DEBUG = True
 fileCount = 0
 
 for filename in os.listdir(dir_path):
@@ -163,14 +163,14 @@ for filename in os.listdir(dir_path):
             prevW = 0
             prevH = 0
             for x, y, h, w in tmp_selected_cont:
-                if (abs(prevY - y) > 5 or h*w < 600 or h*w > 1500) and prevY != 0:
+                if (abs(prevY - y) > 5 or h*w < 600 or h*w > 900) and prevY != 0:
                     y = prevY
                     x = prevX + 45  # difference between Xs is about 45
                     w = prevW
                     h = prevH
-                elif abs(prevY - y) > 5 and prevY == 0 and prevX == 0:
+                elif prevY == 0 and prevX == 0:
                     i = 1
-                    while h*w < 600 and i < 4:
+                    while (h*w < 600 or h*w > 900) and i < 4:
                         x = tmp_selected_cont[i][0] - i * 45  # difference between Xs is about 45
                         y = tmp_selected_cont[i][1]
                         w = 25
