@@ -12,7 +12,7 @@ model_answers = {1: "B", 2: "C", 3: "A", 4: "A", 5: "D", 6: "A", 7: "C", 8: "C",
                  41: "B", 42: "B", 43: "C", 44: "C", 45: "B"}
 total_grade = 0
 faults = 0
-dir_path = "/home/yousef/projects/mcq-corrector/dataset/correction/"
+dir_path = "/home/meegz/Projects/Image Processing/Dataset/tasky/"
 write_list = []
 toWrite = []
 wrong_detection_count = 0
@@ -22,7 +22,7 @@ fileCount = 0
 for filename in os.listdir(dir_path):
     fileCount += 1
     print("------------------------------------------------")
-    print("File:", filename)
+    # print("File:", filename)
     original_image = cv2.imread(dir_path + "/" + filename)
     original_image = original_image[650: 1580, :]
     hoppa = original_image.copy()
@@ -231,12 +231,13 @@ for filename in os.listdir(dir_path):
                     faults += 1
                     x = 0
             elif len(final_answer) < 1:
+                faults += 1
                 x = 0
             if x == 0:
                 print("el asshole ele masa7 el x: check el so2al da:", (k + 1 + question_number_offset + j))
 
 
-            # print("Question", (k + 1 + question_number_offset + j), ":", final_answer)
+            print("Question", (k + 1 + question_number_offset + j), ":", final_answer)
         question_number_offset += 14
     print("File:", filename)
     print("Total Grade:", total_grade, ", No of Faults:", faults)
