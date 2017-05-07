@@ -159,7 +159,7 @@ for filename in os.listdir(dir_path):
             tmp_selected_cont = sorted(tmp_selected_cont, key=lambda l: l[0], reverse=False)
             ans = []
             prevX = 0
-            prevY = 0  # default y value is about 13
+            prevY = 0  # default y q is about 13
             prevW = 0
             prevH = 0
             for x, y, h, w in tmp_selected_cont:
@@ -170,7 +170,7 @@ for filename in os.listdir(dir_path):
                     h = prevH
                 elif prevY == 0 and prevX == 0:
                     i = 1
-                    while (h*w < 600 or h*w > 900) and i < 4:
+                    while (h*w < 600 or h*w > 1000) and (y < 5 or y > 20)and i < 4:
                         x = tmp_selected_cont[i][0] - i * 45  # difference between Xs is about 45
                         y = tmp_selected_cont[i][1]
                         w = 25
