@@ -152,7 +152,7 @@ for filename in os.listdir(dir_path):
                     if abs(x - X[0]) <= 10:
                         x = 0
                         break
-                if x < 100:
+                if x < 100 or w < 15:
                     _range += 1
                     continue
                 tmp_selected_cont.append([x, y, h, w])
